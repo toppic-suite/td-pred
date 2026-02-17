@@ -1,4 +1,4 @@
-# TopRepo
+# TD-Pred
 
 TD-Pred is a deep learning model for predicting top-down MS/MS spectra from
 proteoform sequences.  Proteoform sequences are encoded using one-hot encoding
