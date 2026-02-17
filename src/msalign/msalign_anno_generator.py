@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-import model_data as md
+import model.model_data as md
 import h5py
 
 class MsalignAnnoBatchGenerator(Dataset):
@@ -10,7 +10,7 @@ class MsalignAnnoBatchGenerator(Dataset):
         # default parameters
         self.msalign_file = msalign_file
         self.max_seq_length = max_seq_length
-        self.valid_spectra = list(self.readmgf_iter(msalign_file))
+        self.valid_spectra = list(self.read_msalign_iter(msalign_file))
         print(f"Total spectra: {len(self.valid_spectra)}")
 
     def __len__(self):
@@ -33,14 +33,16 @@ class MsalignAnnoBatchGenerator(Dataset):
 
         return (embedding_tensor, meta_tensor, mask_tensor), target_tensor
 
-    def readmgf_iter(self, fn):
+    def read_msalign_iter(self, fn):
         spectra = self.parse_msalign_annot(fn)
         for spec in spectra:
             meta = spec["meta"]
-            project = meta.get("PROJECT_ID", "")
+            dataset = meta.get("DATASET_ID", "")
             mzml_filename = meta.get("MZML_FILE_NAME", "")
             scan = meta.get("MS2_SCAN", "")
-            proteoform = meta.get("SEQUENCE", "")           
+            proteoform = meta.get("DATABASE_SEQUENCE", "")           
+            if proteoform == "":
+                continue
             charge_str = meta.get("PRECURSOR_CHARGE", "")
             charge_list = charge_str.split(":")
             prec_charge = int(charge_list[0])
@@ -64,7 +66,7 @@ class MsalignAnnoBatchGenerator(Dataset):
 
 
             yield {
-                "project": project,
+                "dataset": dataset,
                 "mzml_filename": mzml_filename,
                 "scan": scan,
                 "instrument": instrument,
@@ -231,4 +233,4 @@ class MsalignAnnoBatchGenerator(Dataset):
                 pep_bond_target_dset[idx] = pep_bond_target
                 b_y_target_dset[idx] = b_y_target
                 charge_target_dset[idx] = charge_target
-        print(f"Successfully converted {idx} spectra records to {hdf5_file}")
+        print(f"Successfully converted {idx+1} spectra records to {hdf5_file}")

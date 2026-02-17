@@ -13,10 +13,15 @@ The final representation is input into a transformer architecture comprising
 six encoder and six non-autoregressive decoder layers for spectral prediction
 
 ## 1. Generate training MS data
+Convert an annotated msalign file to a hdf5 file.
 
+```
+python3 td-pred/src/msalign/msalign_anno_to_hdf5.py --msalign spectra_anno_ms2.msalign --out spectra.hdf
+```
 
-The training MS data can be found at toprepo.org.
+The training and validation MS data files used in the TopRepo paper can be found at toprepo.org.
 
 ## 2. Train the TD-Pred model
 
+Train the TD-Pred model using a training dataset spectra_train.hdf and a validation dataset spectra_val.hdf
 

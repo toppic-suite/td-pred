@@ -1,7 +1,7 @@
 import numpy as np
 
 def get_scan_info(spectrum):
-    scan =[spectrum['project'], spectrum['mzml_filename'], spectrum['scan']]
+    scan =[spectrum['dataset'], spectrum['mzml_filename'], spectrum['scan']]
     return scan
 
 def get_scan_info_length():
