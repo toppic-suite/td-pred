@@ -23,5 +23,8 @@ The training and validation MS data files used in the TopRepo paper can be found
 
 ## 2. Train the TD-Pred model
 
-Train the TD-Pred model using a training dataset spectra_train.hdf and a validation dataset spectra_val.hdf
+Train the TD-Pred model using a training dataset spectra_train.hdf and a validation dataset spectra_val.hdf. The model is stored in the file td_pred_model.pth
 
+```
+python3 td-pred/src/model/train_td_pred.py --train spectra_train.hdf --validate spectra_val.hdf 
+```

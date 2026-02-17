@@ -1,22 +1,19 @@
 #!/usr/bin/env python3
 
-import numpy as np
 import argparse
 import torch
 import torch.nn as nn
 import torch.optim as optim
-#import pred_full_long_torch_model 
-import pred_full_long_transformer_model
+import td_pred_model 
 import model_data as md
-import mgf_torch_generator
-import hdf5_batch_generator
+import hdf5_generator
 from torch.utils.data import DataLoader
 from torchinfo import summary
 import torch.nn.functional as F
 import time
 
 
-def load_datasets(train_file, val_file, target_type="pep_bond"):
+def load_datasets(train_file, val_file, target_type="charge"):
     """
     Load training and validation datasets based on file type
 
@@ -29,8 +26,8 @@ def load_datasets(train_file, val_file, target_type="pep_bond"):
     """
     print(f"Loading datasets from hdf5 files...")
 
-    train_dataset = hdf5_batch_generator.Hdf5BatchGenerator(train_file, target_type=target_type)
-    val_dataset = hdf5_batch_generator.Hdf5BatchGenerator(val_file, target_type=target_type) 
+    train_dataset = hdf5_generator.Hdf5BatchGenerator(train_file, target_type=target_type)
+    val_dataset = hdf5_generator.Hdf5BatchGenerator(val_file, target_type=target_type) 
 
     return train_dataset, val_dataset
 
@@ -176,20 +173,20 @@ def train_model(model, train_dataloader, val_dataloader, num_epochs=40, learning
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--train", type=str, help="train data filename", default="hcd_train_dataset.mgf"
+        "--train", type=str, required=True, help="train data filename"
     )
     parser.add_argument(
-        "--validate", type=str, help="validation data filename", default="hcd_validation_dataset.mgf"
+        "--validate", type=str, required=True, help="validation data filename"
     )
     parser.add_argument(
-        "--out", type=str, help="filename to save the trained model", default="pred_full_torch_model.pth"
+        "--out", type=str, help="filename to save the trained model", default="td_pred_model.pth"
     )
     parser.add_argument("--batch", type=int, default=32, help="Batch size")
     parser.add_argument("--epochs", type=int, default=50, help="Number of epochs")
     parser.add_argument("--lr", type=float, default=0.0003, help="Learning rate")
     parser.add_argument("--load_model", type=str, default=None, help="Path to presaved model to load")
     parser.add_argument("--max_length", type=int, default=200, help="Length of input sequences (default: 200)")
-    parser.add_argument("--target", type=str, default="pep_bond", help="Target type: pep_bond or b_y or charge")
+    parser.add_argument("--target", type=str, default="charge", help="Target type: pep_bond or b_y or charge")
     args = parser.parse_args()
 
     # Check for GPU availability
@@ -209,7 +206,7 @@ def main():
     else:
         print("Using default target: pep_bond")
         output_dim = 1
-    single_model = pred_full_long_transformer_model.TransformerSeq2Seq(
+    single_model = td_pred_model.TransformerSeq2Seq(
         output_len=output_len,
         output_dim=output_dim,
         max_seq_length=args.max_length,
