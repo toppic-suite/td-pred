@@ -28,10 +28,10 @@ def predict_intensity(model, sequence, precursor_charge, nce=25,
         "nce": nce,
     }
 
-    seq_enc = model_data.encode_spectrum(spectrum, max_len)
-    meta = model_data.encode_meta(spectrum)
-    mask = model_data.get_mask(spectrum, max_len)
-    charge_mask = model_data.get_charge_mask(precursor_charge)
+    seq_enc = md.encode_spectrum(spectrum, max_len)
+    meta = md.encode_meta(spectrum)
+    mask = md.get_mask(spectrum, max_len)
+    charge_mask = md.get_charge_mask(precursor_charge)
 
     # add batch dimension
     seq_enc = torch.tensor(seq_enc).unsqueeze(0).to(device)
