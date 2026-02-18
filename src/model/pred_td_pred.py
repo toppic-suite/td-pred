@@ -52,8 +52,6 @@ def compute_b_y_masses(sequence):
     prefix = []
     suffix = []
 
-    total = sum(mono[a] for a in sequence) + 18.01056
-
     cur = 0
     for aa in sequence[:-1]:
         cur += mono[aa]
