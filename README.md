@@ -24,10 +24,20 @@ The training and validation MS data files used in the TopRepo paper can be downl
 
 ## 2. Train the TD-Pred model
 
-Train the TD-Pred model using a training dataset spectra_train.hdf and a validation dataset spectra_val.hdf. The model is stored in the file td_pred_model.pth
+Train the TD-Pred model using a training dataset spectra_train.hdf and a validation dataset spectra_val.hdf. The output model is stored in the file td_pred_model.pth
 
 ```
 python3 td-pred/src/model/train_td_pred.py --train spectra_train.hdf --validate spectra_val.hdf 
 ```
 
 A trained spectral prediction model can be downloaded at [here](https://tulane.box.com/s/6pam0vzs618044vbt2y8bjuavxzl7fsn).
+
+
+## 3. Predict msalign spectra from sequences
+
+Use a pretrained model to predict msalign spectra from proteoform sequences and MS setting information. You can download a pretrained model td_pred_model.pth and a tsv file TopRepo_Fusion_Lumos_Q_Exactive_HF_val_v1.0.0.tsv with proteoform sequences at [here](https://tulane.box.com/s/6pam0vzs618044vbt2y8bjuavxzl7fsn) and use the command below to predict spectra. The predicted spectra are stored in the file spectra_pred.msalign
+
+```
+python3 td-pred/src/model/td_pred.py --input TopRepo_Fusion_Lumos_Q_Exactive_HF_val_v1.0.0.tsv --model td_pred_model.pth --output spectra_pred.msalign
+```
+

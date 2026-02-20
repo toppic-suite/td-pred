@@ -42,7 +42,7 @@ def compute_b_y_masses(sequence):
     cur = 0
     for aa in reversed(sequence[1:]):
         cur += mono[aa]
-        suffix.append(cur + 18.01056)  # y-ion base
+        suffix.append(cur)  
 
     return prefix, suffix
 
@@ -53,13 +53,13 @@ def build_predicted_spectrum(sequence, activation, pred_tensor, max_charge=30):
 
     seq_len = len(sequence)
     pep_bond_num = seq_len - 1
-    n_shift = 0
-    c_shift = 0
+    n_shift = 0          # b ion shift
+    c_shift = 18.01056   # y ion shift
     n_ion = "b"
     c_ion = "y"
-    if activation == "etd":
-        n_shift = 0
-        c_shift = 0 
+    if activation == "etd": 
+        n_shift = 17.0265 # c ion shift
+        c_shift = 1.9919  # z_dot ion shift
         n_ion = "c"
         c_ion = "z_dot"
     for i in range(pep_bond_num):
@@ -70,50 +70,29 @@ def build_predicted_spectrum(sequence, activation, pred_tensor, max_charge=30):
                 peaks.append((n_mass, n_int, z, n_ion, i+1))
             c_int = pred_tensor[i, max_charge + z-1]
             if c_int > 0.01:
-                c_mass = y_mass[i] + c_shift
-                peaks.append((c_mass, c_int, z, c_ion, seq_len - (i+1)))
+                pos = seq_len - (i+1)
+                c_mass = y_mass[pos-1] + c_shift
+                peaks.append((c_mass, c_int, z, c_ion, pos))
 
     return sorted(peaks, key=lambda x: x[0])
 
 
 def write_msalign(peaks, spectrum, outfile):
-    precursor_charge = spectrum["prec_charge"]
-    activation = spectrum["activation_type"]
-    instrument = spectrum["instrument"]
-    nce = spectrum["nce"]
     with open(outfile, "a") as f:   
         f.write("BEGIN IONS\n")
-        f.write(f"PRECURSOR_CHARGE={precursor_charge}\n")
-        f.write(f"ACTIVATION={activation}\n")
-        f.write(f"INSTRUMENT={instrument}\n")
-        f.write(f"COLLISION_ENERGY={nce}\n")
+        f.write(f"DATASET_ID={spectrum['dataset_id']}\n")
+        f.write(f"MZML_FILE_NAME={spectrum['mzml_file_name']}\n")
+        f.write(f"MSALIGN_FILE_NAME={spectrum['msalign_file_name']}\n")
+        f.write(f"PRECURSOR_CHARGE={spectrum['prec_charge']}\n")
+        f.write(f"ACTIVATION={spectrum['activation_type'].upper()}\n")
+        f.write(f"INSTRUMENT={spectrum['instrument'].upper()}\n")
+        f.write(f"COLLISION_ENERGY={spectrum['nce']}\n")
         f.write(f"DATABASE_SEQUENCE={spectrum['proteoform']}\n")
 
         for mass, inten, ch, itype, pos in peaks:
-            f.write(f"{mass:.5f}\t{inten:.4f}\t{ch}\t0\t{itype}{pos}\t{pos}\n")
+            f.write(f"{mass:.5f}\t{inten:.4f}\t{ch}\t{itype}{pos}\n")
 
         f.write("END IONS\n\n")
-
-
-def predict_msalign_from_sequence(model, sequence,
-                                  precursor_charge=4,
-                                  activation="hcd",
-                                  instrument="q exactive",
-                                  nce=25,
-                                  outfile="pred.msalign",
-                                  device="cpu"):
-
-    pred = predict_intensity(
-        model, sequence, precursor_charge,
-        nce=nce, activation=activation,
-        instrument=instrument,
-        device=device
-    )
-
-    peaks = build_predicted_spectrum(sequence, pred)
-    write_msalign(peaks, sequence, outfile,
-                  precursor_charge, activation, instrument, nce)
-
 
 
 if __name__ == "__main__":
@@ -144,7 +123,7 @@ if __name__ == "__main__":
         model = single_model
 
     # Load presaved model if specified
-    checkpoint = torch.load(args.model, map_location=device)
+    checkpoint = torch.load(args.model, map_location=device, weights_only=True)
     model.load_state_dict(checkpoint['model_state_dict'])
     print("Model loaded successfully")
 
@@ -156,22 +135,23 @@ if __name__ == "__main__":
     df = pandas.read_csv(args.input, sep="\t")
 
     for i in range(len(df)):
-        print(f"Predicting spectrum {i+1}/{len(df)}: {seq}")
         seq = df.loc[i, "DATABASE_SEQUENCE"]
-        charge = df.loc[i, "PRECURSOR_CHARGE"]
-        activation = df.loc[i, "ACTIVATION"]
-        instrument = df.loc[i, "INSTRUMENT"]
-        nce = df.loc[i, "COLLISION_ENERGY"]
-
+        activation = df.loc[i, "ACTIVATION"].lower()
+        if (i+1) % 100 == 0:
+            print(f"Predicting spectrum {i+1}/{len(df)}: {seq}")
         spectrum = {
+            "dataset_id": df.loc[i, "DATASET_ID"],
+            "mzml_file_name": df.loc[i, "MZML_FILE_NAME"],
+            "msalign_file_name": df.loc[i, "MSALIGN_FILE_NAME"],
             "proteoform": seq,
-            "prec_charge": charge,
+            "prec_charge": int(df.loc[i, "PRECURSOR_CHARGE"]),
             "activation_type": activation,
-            "instrument": instrument,
-            "nce": nce,
+            "instrument": df.loc[i, "INSTRUMENT"].lower(),
+            "nce": float(df.loc[i, "COLLISION_ENERGY"]),
         }
 
         pred = predict_intensity(model, spectrum, max_seq_length, device)
-        peaks = build_predicted_spectrum(seq, pred)
-
+        #print(f"Predicted intensity shape: {pred.shape}", pred)
+        peaks = build_predicted_spectrum(seq, activation, pred)
+        #print(peaks)
         write_msalign(peaks, spectrum, args.output)

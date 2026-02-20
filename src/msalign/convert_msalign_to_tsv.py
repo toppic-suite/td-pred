@@ -5,6 +5,10 @@ import sys
 import csv
 
 FIELDS = [
+    "DATASET_ID",
+    "MZML_FILE_NAME",
+    "MSALIGN_FILE_NAME",
+    "MS2_SCAN",
     "DATABASE_SEQUENCE",
     "PRECURSOR_CHARGE",
     "INSTRUMENT",
@@ -30,8 +34,8 @@ def parse_msalign(input_path: str, output_path: str) -> None:
                 key, _, value = line.partition("=")
                 if key in FIELDS:
                     if key == "PRECURSOR_CHARGE":
-                        parts = key.split(":")
-                        key = parts[0]
+                        parts = value.split(":")
+                        value = parts[0]
                     current[key] = value
 
     with open(output_path, "w", newline="") as fh:
