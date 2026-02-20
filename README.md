@@ -19,7 +19,7 @@ Convert an annotated msalign file to a hdf5 file.
 python3 td-pred/src/msalign/msalign_anno_to_hdf5.py --msalign spectra_anno_ms2.msalign --out spectra.hdf
 ```
 
-The training and validation MS data files used in the TopRepo paper can be downloaded at 
+The training and validation MS data files used in the TopRepo paper can be downloaded  
 [here](https://tulane.box.com/s/6pam0vzs618044vbt2y8bjuavxzl7fsn).
 
 ## 2. Train the TD-Pred model
@@ -30,12 +30,12 @@ Train the TD-Pred model using a training dataset spectra_train.hdf and a validat
 python3 td-pred/src/model/train_td_pred.py --train spectra_train.hdf --validate spectra_val.hdf 
 ```
 
-A trained spectral prediction model can be downloaded at [here](https://tulane.box.com/s/6pam0vzs618044vbt2y8bjuavxzl7fsn).
+A trained spectral prediction model can be downloaded [here](https://tulane.box.com/s/6pam0vzs618044vbt2y8bjuavxzl7fsn).
 
 
 ## 3. Predict msalign spectra from sequences
 
-Use a pretrained model to predict msalign spectra from proteoform sequences and MS setting information. You can download a pretrained model td_pred_model.pth and a tsv file TopRepo_Fusion_Lumos_Q_Exactive_HF_val_v1.0.0.tsv with proteoform sequences at [here](https://tulane.box.com/s/6pam0vzs618044vbt2y8bjuavxzl7fsn) and use the command below to predict spectra. The predicted spectra are stored in the file spectra_pred.msalign
+Use a pretrained model to predict msalign spectra from proteoform sequences and MS setting information. You can download a pretrained model td_pred_model.pth and a tsv file TopRepo_Fusion_Lumos_Q_Exactive_HF_val_v1.0.0.tsv with proteoform sequences [here](https://tulane.box.com/s/6pam0vzs618044vbt2y8bjuavxzl7fsn) and use the command below to predict spectra. The predicted spectra are stored in the file spectra_pred.msalign
 
 ```
 python3 td-pred/src/model/td_pred.py --input TopRepo_Fusion_Lumos_Q_Exactive_HF_val_v1.0.0.tsv --model td_pred_model.pth --output spectra_pred.msalign
