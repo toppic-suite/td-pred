@@ -19,8 +19,6 @@ class Hdf5BatchGenerator(Dataset):
         else:
             raise ValueError(f"Unknown target type: {target_type}")
 
-        # Read metadata only; do not keep file open (h5py file handles are not
-        # safe to share across forked DataLoader worker processes on Linux).
         with h5py.File(hdf5_file, 'r') as h5f:
             self.num_spectra = h5f['seq_encoding'].shape[0]
             self.spectrum_id_shape = h5f['spectrum_id'].shape[1:]
