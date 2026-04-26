@@ -18,16 +18,18 @@ class Hdf5BatchGenerator(Dataset):
             self.target_type = 2
         else:
             raise ValueError(f"Unknown target type: {target_type}")
-        self.h5f = h5py.File(hdf5_file, 'r')
 
-        self.num_spectra = self.h5f['seq_encoding'].shape[0]
-        self.spectrum_id_shape = self.h5f['spectrum_id'].shape[1:]
-        self.seq_encoding_shape = self.h5f['seq_encoding'].shape[1:]
-        self.meta_shape = self.h5f['meta'].shape[1:]
-        self.mask_shape = self.h5f['mask'].shape[1:]
-        self.pep_bond_target_shape = self.h5f['pep_bond_target'].shape[1:]
-        self.b_y_target_shape = self.h5f['b_y_target'].shape[1:]
-        self.charge_target_shape = self.h5f['charge_target'].shape[1:]
+        # Read metadata only; do not keep file open (h5py file handles are not
+        # safe to share across forked DataLoader worker processes on Linux).
+        with h5py.File(hdf5_file, 'r') as h5f:
+            self.num_spectra = h5f['seq_encoding'].shape[0]
+            self.spectrum_id_shape = h5f['spectrum_id'].shape[1:]
+            self.seq_encoding_shape = h5f['seq_encoding'].shape[1:]
+            self.meta_shape = h5f['meta'].shape[1:]
+            self.mask_shape = h5f['mask'].shape[1:]
+            self.pep_bond_target_shape = h5f['pep_bond_target'].shape[1:]
+            self.b_y_target_shape = h5f['b_y_target'].shape[1:]
+            self.charge_target_shape = h5f['charge_target'].shape[1:]
 
         print(f"Loaded HDF5 dataset with {self.num_spectra} spectra")
         print(f"Spectrum ID shape: {self.spectrum_id_shape}")
@@ -38,27 +40,32 @@ class Hdf5BatchGenerator(Dataset):
         print(f"B/Y target shape: {self.b_y_target_shape}")
         print(f"Charge target shape: {self.charge_target_shape}")
 
+    def _get_h5f(self):
+        # Lazy per-worker file open: each DataLoader worker process opens its
+        # own handle exactly once, avoiding fork-inherited handle conflicts.
+        if not hasattr(self, '_h5f'):
+            self._h5f = h5py.File(self.hdf5_file, 'r')
+        return self._h5f
+
     def __len__(self):
         return self.num_spectra
 
-    #  Get a single spectrum by index
     def __getitem__(self, idx):
-        # Open file for each access (thread-safe for DataLoader with multiple workers)
-        spectrum_id = self.h5f['spectrum_id'][idx]
-        seq_encoding = self.h5f['seq_encoding'][idx]
-        meta = self.h5f['meta'][idx]
-        mask = self.h5f['mask'][idx]
-        charge_mask = self.h5f['charge_mask'][idx]
-        #print("charge_mask:", charge_mask)
+        h5f = self._get_h5f()
+        spectrum_id = h5f['spectrum_id'][idx]
+        seq_encoding = h5f['seq_encoding'][idx]
+        meta = h5f['meta'][idx]
+        mask = h5f['mask'][idx]
+        charge_mask = h5f['charge_mask'][idx]
         if self.target_type == 0:
-            target = self.h5f['pep_bond_target'][idx]
+            target = h5f['pep_bond_target'][idx]
         elif self.target_type == 1:
-            target = self.h5f['b_y_target'][idx]
+            target = h5f['b_y_target'][idx]
         elif self.target_type == 2:
-            target = self.h5f['charge_target'][idx]
+            target = h5f['charge_target'][idx]
         else:
             raise ValueError(f"Unknown target type: {self.target_type}")
-        # Convert to PyTorch tensors
+
         spectrum_id = torch.from_numpy(spectrum_id)
         seq_encoding_tensor = torch.from_numpy(seq_encoding)
         meta_tensor = torch.from_numpy(meta)
