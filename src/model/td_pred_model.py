@@ -11,19 +11,6 @@ from torchinfo import summary
 
 import model_data 
 
-'''
-# Set seed for reproducibility.
-def set_seed(seed_value):
-    random.seed(seed_value)
-    np.random.seed(seed_value)
-    torch.manual_seed(seed_value)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed_value)
-    # For deterministic behavior in CuDNN
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-'''
-
 # Positional encoding for transformer
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model, max_len=5000):
@@ -43,6 +30,7 @@ class PositionalEncoding(nn.Module):
     def forward(self, x):
         # x shape: (batch_size, seq_len, d_model)
         return x + self.pe[:, :x.size(1), :]
+
 # CNN layers for multi-scale overview
 class OverviewCNN(nn.Module):
     def __init__(self, seq_input_dimension, kernal=1):
@@ -70,9 +58,6 @@ class TransformerSeq2Seq(nn.Module):
                  dim_feedforward=1024,
                  dropout=0.1):
         super(TransformerSeq2Seq, self).__init__()
-        # set seed for reproducibility
-        # seed = 42
-        # set_seed(seed)
 
         self.d_model = d_model
 
