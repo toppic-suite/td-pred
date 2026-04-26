@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import numpy as np
+import argparse
 import random
 
 import torch
@@ -10,6 +11,7 @@ from torchinfo import summary
 
 import model_data 
 
+'''
 # Set seed for reproducibility.
 def set_seed(seed_value):
     random.seed(seed_value)
@@ -20,6 +22,7 @@ def set_seed(seed_value):
     # For deterministic behavior in CuDNN
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+'''
 
 # Positional encoding for transformer
 class PositionalEncoding(nn.Module):
@@ -68,8 +71,8 @@ class TransformerSeq2Seq(nn.Module):
                  dropout=0.1):
         super(TransformerSeq2Seq, self).__init__()
         # set seed for reproducibility
-        seed = 42
-        set_seed(seed)
+        # seed = 42
+        # set_seed(seed)
 
         self.d_model = d_model
 
