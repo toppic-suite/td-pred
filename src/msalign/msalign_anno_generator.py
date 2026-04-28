@@ -119,7 +119,7 @@ class MsalignAnnoBatchGenerator(Dataset):
         charge_target = np.zeros((self.max_seq_length - 1, max_charge*2), dtype=np.int32)
         prec_charge = spectrum["prec_charge"]
         frag_inte_list = np.array(spectrum["frag_intensity_list"], dtype=np.float32)
-        charge_list = np.array(spectrum["frag_charge_list"], dtype=np.int32)
+        charge_list = np.array(spectrum["frag_charge_list"], dtype=np.float32)
         ion_type_list = np.array(spectrum["frag_type_list"])
         ion_type_positions = np.array(spectrum["frag_pos_list"], dtype=np.int32)
         seq_length = len(spectrum['proteoform'])
