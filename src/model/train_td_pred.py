@@ -229,6 +229,13 @@ def train_model(model, train_dataloader, val_dataloader, num_epochs=40,
 # Entry point
 # --------------------------------------------------------------------------- #
 
+# --------------------------------------------------------------------------- #
+# Device / distributed setup
+#
+# Single-GPU / CPU:  python train_td_pred.py ...
+# Multi-GPU DDP:     torchrun --nproc_per_node=N train_td_pred.py ...
+# --------------------------------------------------------------------------- #
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--train",      type=str,   default="hcd_train_dataset.mgf",      help="train data filename")
@@ -246,12 +253,6 @@ def main():
                         help="Enable deterministic algorithms for reproducibility (disables cudnn.benchmark, slower)")
     args = parser.parse_args()
 
-    # ------------------------------------------------------------------ #
-    # Device / distributed setup
-    #
-    # Single-GPU / CPU:  python train_td_pred.py ...
-    # Multi-GPU DDP:     torchrun --nproc_per_node=N train_td_pred.py ...
-    # ------------------------------------------------------------------ #
     local_rank = int(os.environ.get('LOCAL_RANK', -1))
     if local_rank >= 0:
         dist.init_process_group(backend='nccl')
