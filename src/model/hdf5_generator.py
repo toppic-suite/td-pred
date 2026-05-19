@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import numpy as np
 import h5py
 import torch
 from torch.utils.data import Dataset
