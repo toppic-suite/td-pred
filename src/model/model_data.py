@@ -101,8 +101,9 @@ def encode_spectrum(spectrum, max_peptide_length):
             encoding[i][char_map_size] = mono_mass_list.get(aa,0) / mass_scale 
             # encode proteoform length
             encoding[i][char_map_size + 1] = ori_proteoform_len / length_scale        
-            # position info
-            encoding[i][char_map_size + 2] = normalize_pos(i, ori_proteoform_len)     
+            # position info: i is offset by 1 for the start token, so residue
+            # index is i-1 (0-based), mapping the first/last residue to -1/+1
+            encoding[i][char_map_size + 2] = normalize_pos(i - 1, ori_proteoform_len)
     return encoding
 
 def get_meta_length():
@@ -138,7 +139,7 @@ def encode_meta(spectrum):
     # activation
     activation_encoding = np.zeros(5,dtype="float32")
     activation_map = get_activation_map()
-    activation = spectrum["activation_type"]
+    activation = spectrum["activation_type"].lower()
     activation_code = activation_map.get(activation, 0)
     if activation_code == 0:
         print("Warning: Unknown activation type:", activation)
