@@ -116,16 +116,19 @@ if __name__ == "__main__":
         max_seq_length=max_seq_length,
     )
 
+    # Checkpoints store the unwrapped module's state dict (see train_td_pred.py),
+    # so load into the bare model before any DataParallel wrapping; otherwise the
+    # wrapper expects "module."-prefixed keys and load_state_dict fails.
+    checkpoint = torch.load(args.model, map_location=device, weights_only=True)
+    single_model.load_state_dict(checkpoint['model_state_dict'])
+    single_model.to(device)
+    print("Model loaded successfully")
+
     if torch.cuda.device_count() > 1:
         print(f"Using {torch.cuda.device_count()} GPUs!")
         model = nn.DataParallel(single_model)
     else:
         model = single_model
-
-    # Load presaved model if specified
-    checkpoint = torch.load(args.model, map_location=device, weights_only=True)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    print("Model loaded successfully")
 
     model.eval()
 

@@ -99,6 +99,5 @@ Input TSV columns: `DATASET_ID, MZML_FILE_NAME, MSALIGN_FILE_NAME, DATABASE_SEQU
 INSTRUMENT, ACTIVATION, COLLISION_ENERGY`.
 
 **Checkpoints** are dicts with `model_state_dict` (always the unwrapped module, DDP/DataParallel stripped)
-plus loss/similarity histories. Loading a checkpoint into a DataParallel-wrapped model (as `td_pred.py` does
-on a multi-GPU machine) will therefore fail on the `module.` prefix; run prediction on a single GPU or load
-into the bare model first.
+plus loss/similarity histories. Always call `load_state_dict` on the bare `TransformerSeq2Seq` *before*
+wrapping it in DDP/DataParallel, otherwise the wrapper expects `module.`-prefixed keys and the load fails.
