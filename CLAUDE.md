@@ -73,7 +73,8 @@ and the prediction script call it, so the model, the stored data, and inference 
 
 - Sequence encoding: length `max_length + 2` (start token `@`, end token `[`), dimension 27 =
   24 one-hot chars (22 amino acids + 2 tokens) + residue mass/200 + proteoform length/200 + position in [-1, 1].
-  Note the mass table has lowercase `m` (oxidized Met) but the one-hot alphabet does not.
+  Lowercase modified residues (e.g. `m`, oxidized Met) share the one-hot slot of the uppercase residue;
+  the mass feature carries the modification. Characters outside the mass table still get length/position.
 - Meta vector: 46 = 30 precursor-charge one-hot + 9 instrument one-hot + 5 activation one-hot
   (unknown/cid/etd/hcd/ethcd) + proteoform mass/10000 + NCE/100 (0.25 when NCE missing).
 - Mask: 1.0 over residue positions only (excludes start/end tokens).

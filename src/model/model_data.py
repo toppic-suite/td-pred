@@ -92,10 +92,16 @@ def encode_spectrum(spectrum, max_peptide_length):
     ori_proteoform_len = len(proteoform)
     proteoform = "@" + proteoform + "["
     for i, aa in enumerate(proteoform):
-        if aa not in char_map: 
-            continue
-        # one hot coding 
-        encoding[i][char_map[aa]] = 1                                          
+        # one hot coding. Modified residues are lowercase in the mass table
+        # (e.g. "m" = oxidized Met) but not in the one-hot alphabet, so they
+        # share the one-hot slot of the unmodified residue; the mass feature
+        # below carries the modification. Truly unknown characters get no
+        # one-hot bit but still receive mass/length/position below.
+        onehot_aa = aa if aa in char_map else aa.upper()
+        if onehot_aa in char_map:
+            encoding[i][char_map[onehot_aa]] = 1
+        else:
+            print("Warning: Unknown residue in one-hot alphabet:", aa)
         if i > 0 and i < ori_proteoform_len+1:
             # encode amino acid mass
             encoding[i][char_map_size] = mono_mass_list.get(aa,0) / mass_scale 
