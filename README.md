@@ -12,6 +12,23 @@ transformer layers to access global meta-features at every sequence position.
 The final representation is input into a transformer architecture comprising
 six encoder and six non-autoregressive decoder layers for spectral prediction
 
+## Release 1.3: retraining required
+
+Release 1.3 fixes several bugs in the sequence and meta-information encoding:
+
+- The instrument type is now one-hot encoded (it was always all zeros before).
+- The residue position feature now spans [-1, 1] over the sequence (it was offset by one residue).
+- Modified residues written in lowercase (e.g. `m` for oxidized Met) are now encoded instead of skipped.
+
+These changes alter the model input. HDF5 training files and model files produced with
+release 1.2.x or earlier are **not compatible** with release 1.3. To use release 1.3:
+
+1. Regenerate HDF5 files from the annotated msalign files (Step 1 below).
+2. Retrain the model on the regenerated files (Step 2 below).
+
+The pretrained model `td_pred_backbone_model_1.2.1.pth` linked below was trained with the old
+encoding and should only be used with release 1.2.x code.
+
 ## 1. Generate training MS data
 Convert an annotated msalign file to a hdf5 file.
 
