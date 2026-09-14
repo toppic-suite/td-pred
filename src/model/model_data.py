@@ -134,6 +134,7 @@ def encode_meta(spectrum):
     instrument_code = instrument_map.get(instrument, 0)
     if instrument_code == 0:
         print("Warning: Unknown instrument:", instrument)
+    instrument_encoding[instrument_code] = 1
     # activation
     activation_encoding = np.zeros(5,dtype="float32")
     activation_map = get_activation_map()
